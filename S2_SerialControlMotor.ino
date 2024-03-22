@@ -2,15 +2,18 @@
 
 Servo motor[8];    // Array to hold the motor objects
 String readString; // String to hold incoming command from serial port
+#define indicator 13 // Indicator LED pin
 
 void setup()
 {
   Serial.begin(115200);  // Start serial communication at 115200 baud rate
   Serial2.begin(115200); // Communication with the Arduino on shore
-  for (int i = 0; i < 8; i++)
-  {
-    motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
-  }
+  pinMode(indicator, OUTPUT); // Set the indicator LED pin as output
+  digitalWrite(indicator, LOW); // Turn off the indicator LED
+  // for (int i = 0; i < 8; i++)
+  // {
+  //   motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
+  // }
 }
 
 void loop()
@@ -128,6 +131,8 @@ void toggleFunction(int functionNumber, int functionState)
     {
       motor[i].detach();
     }
+    digitalWrite(indicator, LOW); // Turn off the indicator LED
+    Serial.println("Disarmed!");
     break;
   case 10:
     // Button Start, attach all motors and set to 90
@@ -136,6 +141,8 @@ void toggleFunction(int functionNumber, int functionState)
       motor[i].attach(i + 2);
       motor[i].write(90);
     }    
+    digitalWrite(indicator, HIGH); // Turn on the indicator LED
+    Serial.println("Armed and ready!");
     break;
   case 11:
     // Button L3, Left stick button
