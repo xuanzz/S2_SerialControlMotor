@@ -5,14 +5,15 @@ String readString; // String to hold incoming command from serial port
 
 void setup() {
   Serial.begin(115200); // Start serial communication at 115200 baud rate
+  Serial2.begin(115200); // Communication with the Arduino on shore
   for (int i = 0; i < 8; i++) {
     motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
   }
 }
 
 void loop() {
-  if (Serial.available()) {
-    char c = Serial.read(); // Get one byte from serial buffer
+  if (Serial2.available()) {
+    char c = Serial2.read(); // Get one byte from serial buffer
     if (c == '\n') {
       processCommand(readString); // Process the command
       readString = ""; // Clear the string for new input
@@ -29,8 +30,8 @@ void processCommand(String command) {
   Serial.print("Function type: ");
   Serial.println(functionType);
   if (functionType == 'M') {
-    Serial.println(command);
     // Motor control function
+    Serial.println("Motor speed: " + command);
     int i = 0;
     while (commaIndex != -1 && i < 8) {
       int value = command.substring(0, commaIndex).toInt(); // Get the value before the comma
@@ -45,7 +46,6 @@ void processCommand(String command) {
       motor[i].write(lastValue); // Control the motor with the last value
     }
   } else if (functionType == 'F') {
-    Serial.println(command);
     // Toggle function
     int functionNumber = command.substring(0, commaIndex).toInt(); // Get the function number
     int functionState = command.substring(commaIndex + 1).toInt(); // Get the function state
@@ -65,9 +65,5 @@ void processCommand(String command) {
 // Function to toggle a specific function based on the function number and state
 void toggleFunction(int functionNumber, int functionState) {
   // Implement your toggle function here
-  Serial.print("Toggled function ");
-  Serial.print(functionNumber);
-  Serial.print(" to state ");
-  Serial.println(functionState);
-
+  Serial.print("Function " + (String)functionNumber + " toggled to state " + (String)functionState);
 }
