@@ -1,8 +1,12 @@
 #include <Servo.h>
 
 Servo motor[8];    // Array to hold the motor objects
+Servo gripper;  // Add 1 servo for gripper
 String readString; // String to hold incoming command from serial port
 #define indicator 13 // Indicator LED pin
+#define gripperOpen 150 //gripper open value
+#define gripperClose 30 //gripper close value
+#define gripperStop 93 //gripper stop value
 
 void setup()
 {
@@ -10,6 +14,8 @@ void setup()
   Serial2.begin(115200); // Communication with the Arduino on shore
   pinMode(indicator, OUTPUT); // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
+  gripper.attach(10);
+  gripper.write(gripperStop);
   // for (int i = 0; i < 8; i++)
   // {
   //   motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
@@ -118,12 +124,28 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 6:
     // Button R1, Right bumper
+    if (functionState == 1)
+    {
+      gripper.write(gripperStop + 60); //open the gripper
+    }
+    else
+    {
+      gripper.write(gripperStop); //stop the gripper
+    }
     break;
   case 7:
     // Button L2, Left trigger
     break;
   case 8:
     // Button R2, Right trigger
+    if (functionState == 1)
+    {
+      gripper.write(gripperStop - 60); //close the gripper
+    }
+    else
+    {
+      gripper.write(gripperStop); //stop the gripper
+    }
     break;
   case 9:
     // Button Back, detach all motors
@@ -141,6 +163,7 @@ void toggleFunction(int functionNumber, int functionState)
       motor[i].attach(i + 2);
       motor[i].write(90);
     }    
+    delay(1000); //wait for 1 second
     digitalWrite(indicator, HIGH); // Turn on the indicator LED
     Serial.println("Armed and ready!");
     break;
