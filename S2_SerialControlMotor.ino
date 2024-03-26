@@ -1,12 +1,18 @@
 #include <Servo.h>
+#include "DS18B20_INT.h"
 
 Servo motor[8];    // Array to hold the motor objects
 Servo gripper;  // Add 1 servo for gripper
 String readString; // String to hold incoming command from serial port
+uint32_t start, stop; //temperature sensor time
 #define indicator 13 // Indicator LED pin
 #define gripperOpen 150 //gripper open value
 #define gripperClose 30 //gripper close value
 #define gripperStop 93 //gripper stop value
+#define ONE_WIRE_BUS            7 //temperature wire exit
+
+OneWire oneWire(ONE_WIRE_BUS);
+DS18B20_INT sensor(&oneWire);
 
 void setup()
 {
@@ -16,6 +22,8 @@ void setup()
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
   gripper.write(gripperStop);
+  sensor.begin(); //turn on the temperature sensor
+  sensor.setResolution(12);
   // for (int i = 0; i < 8; i++)
   // {
   //   motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
@@ -100,11 +108,23 @@ void processCommand(String command)
   }
 }
 
+void GetTemperature() //function for getting temperature
+{
+  int n = 0;
+  start = millis();
+  sensor.requestTemperatures();
+  while (!sensor.isConversionComplete()) n++;
+  int t = sensor.getTempCentiC();
+  stop = millis();
+  Serial2.print("T=");
+  Serial2.println(t);
+}
+
 // Function to toggle a specific function based on the function number and state
 void toggleFunction(int functionNumber, int functionState)
 {
   // Implement your toggle function here
-  Serial.print("Function " + (String)functionNumber + " toggled to state " + (String)functionState);
+  Serial.println("Function " + (String)functionNumber + " toggled to state " + (String)functionState);
   switch (functionNumber)
   {
   case 1:
@@ -118,6 +138,10 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 4:
     // Button Y, Yellow
+    if (functionState == 1)
+    {
+      GetTemperature();
+    }
     break;
   case 5:
     // Button L1, Left bumper
@@ -180,3 +204,4 @@ void toggleFunction(int functionNumber, int functionState)
   }
 
 }
+

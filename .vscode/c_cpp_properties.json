@@ -19,6 +19,8 @@
                 "C:\\Users\\s23127\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino",
                 "C:\\Users\\s23127\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\mega",
                 "C:\\Users\\s23127\\Documents\\Arduino\\libraries\\Servo\\src",
+                "C:\\Users\\s23127\\Documents\\Arduino\\libraries\\DS18B20_int\\src",
+                "C:\\Users\\s23127\\Documents\\Arduino\\libraries\\OneWire",
                 "c:\\users\\s23127\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\s23127\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\s23127\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include"
