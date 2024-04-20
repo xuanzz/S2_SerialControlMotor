@@ -9,7 +9,7 @@ uint32_t start, stop; //temperature sensor time
 #define gripperOpen 150 //gripper open value
 #define gripperClose 30 //gripper close value
 #define gripperStop 93 //gripper stop value
-#define ONE_WIRE_BUS            7 //temperature wire exit
+#define ONE_WIRE_BUS            8 //temperature wire exit
 
 OneWire oneWire(ONE_WIRE_BUS);
 DS18B20_INT sensor(&oneWire);
