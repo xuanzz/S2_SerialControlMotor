@@ -11,6 +11,8 @@ uint32_t start, stop; //temperature sensor time
 #define gripperClose 30 //gripper close value
 #define gripperStop 93 //gripper stop value
 int rotateangle 90; //rotategripper initial angle
+int direction;
+unsigned long previousMillis = 0;
 #define ONE_WIRE_BUS            8 //temperature wire exit
 
 OneWire oneWire(ONE_WIRE_BUS);
@@ -50,6 +52,13 @@ void loop()
     {
       readString += c; // Build the string
     }
+  }
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 50)
+  {
+    previousMillis = currentMillis;
+    if (direction == 1 || -1)
+    rotateGripper();
   }
 }
 
@@ -122,7 +131,7 @@ void GetTemperature() //function for getting temperature
   Serial2.println(t);
 }
 
-void rotateGripper(int direction)
+void rotateGripper()
 {
   if (direction == 1)
   {
@@ -164,9 +173,15 @@ void toggleFunction(int functionNumber, int functionState)
   case 5:
     // Button L1, Left bumper
     if (functionState == 1)
-    rotateGripper(1);
+    {
+      direction = 1;
+      rotateGripper();
+    }
     else
-    rotateGripper(0);
+    {
+      direction = 0;
+      rotateGripper();
+    }
     break;
   case 6:
     // Button R1, Right bumper
@@ -182,9 +197,15 @@ void toggleFunction(int functionNumber, int functionState)
   case 7:
     // Button L2, Left trigger
     if (functionState == 1)
-    rotateGripper(-1);
+    {
+      direction = -1;
+      rotateGripper();
+    }
     else
-    rotateGripper(0);
+    {
+      direction = 0;
+      rotateGripper();
+    }
     break;
   case 8:
     // Button R2, Right trigger
