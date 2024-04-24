@@ -3,12 +3,14 @@
 
 Servo motor[8];    // Array to hold the motor objects
 Servo gripper;  // Add 1 servo for gripper
+Servo rotategripper; // Add 1 servo for rotategripper
 String readString; // String to hold incoming command from serial port
 uint32_t start, stop; //temperature sensor time
 #define indicator 13 // Indicator LED pin
 #define gripperOpen 150 //gripper open value
 #define gripperClose 30 //gripper close value
 #define gripperStop 93 //gripper stop value
+int rotateangle 90; //rotategripper initial angle
 #define ONE_WIRE_BUS            8 //temperature wire exit
 
 OneWire oneWire(ONE_WIRE_BUS);
@@ -120,6 +122,22 @@ void GetTemperature() //function for getting temperature
   Serial2.println(t);
 }
 
+void rotateGripper(int direction)
+{
+  if (direction == 1)
+  {
+    rotateangle = rotateangle + 1;
+    rotategripper.write(rotateangle);
+  }
+  else if (direction == -1)
+  {
+    rotateangle = rotateangle - 1;
+    rotategripper.write(rotateangle);
+  }
+  else if (direction == 0)
+  rotategripper.write(rotateangle);
+}
+
 // Function to toggle a specific function based on the function number and state
 void toggleFunction(int functionNumber, int functionState)
 {
@@ -145,6 +163,10 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 5:
     // Button L1, Left bumper
+    if (functionState == 1)
+    rotateGripper(1);
+    else
+    rotateGripper(0);
     break;
   case 6:
     // Button R1, Right bumper
@@ -159,6 +181,10 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 7:
     // Button L2, Left trigger
+    if (functionState == 1)
+    rotateGripper(-1);
+    else
+    rotateGripper(0);
     break;
   case 8:
     // Button R2, Right trigger
