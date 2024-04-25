@@ -1,35 +1,35 @@
 #include <Servo.h>
 #include "DS18B20_INT.h"
 
-Servo motor[8];    // Array to hold the motor objects
-Servo gripper;  // Add 1 servo for gripper
+Servo motor[8];      // Array to hold the motor objects
+Servo gripper;       // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
 int rotateGripperPin = 11;
-String readString; // String to hold incoming command from serial port
-uint32_t start, stop; //temperature sensor time
-#define indicator 13 // Indicator LED pin
-#define gripperOpen 150 //gripper open value
-#define gripperClose 30 //gripper close value
-#define gripperStop 93 //gripper stop value
-int rotateangle = 90; //rotategripper initial angle
+String readString;      // String to hold incoming command from serial port
+uint32_t start, stop;   // temperature sensor time
+#define indicator 13    // Indicator LED pin
+#define gripperOpen 150 // gripper open value
+#define gripperClose 30 // gripper close value
+#define gripperStop 93  // gripper stop value
+int rotateangle = 90;   // rotategripper initial angle
 int direction;
 unsigned long previousMillis = 0;
-#define ONE_WIRE_BUS            8 //temperature wire exit
+#define ONE_WIRE_BUS 8 // temperature wire exit
 
 OneWire oneWire(ONE_WIRE_BUS);
 DS18B20_INT sensor(&oneWire);
 
 void setup()
 {
-  Serial.begin(115200);  // Start serial communication at 115200 baud rate
-  Serial2.begin(115200); // Communication with the Arduino on shore
-  pinMode(indicator, OUTPUT); // Set the indicator LED pin as output
+  Serial.begin(115200);         // Start serial communication at 115200 baud rate
+  Serial2.begin(115200);        // Communication with the Arduino on shore
+  pinMode(indicator, OUTPUT);   // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
   rotategripper.attach(rotateGripperPin);
   gripper.write(gripperStop);
   rotategripper.write(rotateangle);
-  sensor.begin(); //turn on the temperature sensor
+  sensor.begin(); // turn on the temperature sensor
   sensor.setResolution(12);
   // for (int i = 0; i < 8; i++)
   // {
@@ -61,7 +61,7 @@ void loop()
   {
     previousMillis = currentMillis;
     if (direction == 1 || -1)
-    rotateGripper();
+      rotateGripper();
   }
 }
 
@@ -108,7 +108,7 @@ void processCommand(String command)
     }
     Serial.println("All motors stopped");
   }
-  else if (functionType == 'H') //trigger when hat button is pressed
+  else if (functionType == 'H') // trigger when hat button is pressed
   {
   }
   else if (functionType == 'P')
@@ -122,12 +122,13 @@ void processCommand(String command)
   }
 }
 
-void GetTemperature() //function for getting temperature
+void GetTemperature() // function for getting temperature
 {
   int n = 0;
   start = millis();
   sensor.requestTemperatures();
-  while (!sensor.isConversionComplete()) n++;
+  while (!sensor.isConversionComplete())
+    n++;
   int t = sensor.getTempCentiC();
   stop = millis();
   Serial2.print("T=");
@@ -140,18 +141,19 @@ void rotateGripper()
   {
     rotateangle = rotateangle + 1;
     if (rotateangle >= 180)
-    rotateangle = 180;
+      rotateangle = 180;
     rotategripper.write(rotateangle);
   }
   else if (direction == -1)
   {
     rotateangle = rotateangle - 1;
     if (rotateangle <= 0)
-    rotateangle = 0;
+      rotateangle = 0;
     rotategripper.write(rotateangle);
   }
   else if (direction == 0)
-  {}
+  {
+  }
 }
 
 // Function to toggle a specific function based on the function number and state
@@ -194,11 +196,11 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R1, Right bumper
     if (functionState == 1)
     {
-      gripper.write(gripperStop + 60); //open the gripper
+      gripper.write(gripperStop + 60); // open the gripper
     }
     else
     {
-      gripper.write(gripperStop); //stop the gripper
+      gripper.write(gripperStop); // stop the gripper
     }
     break;
   case 7:
@@ -218,11 +220,11 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R2, Right trigger
     if (functionState == 1)
     {
-      gripper.write(gripperStop - 60); //close the gripper
+      gripper.write(gripperStop - 60); // close the gripper
     }
     else
     {
-      gripper.write(gripperStop); //stop the gripper
+      gripper.write(gripperStop); // stop the gripper
     }
     break;
   case 9:
@@ -240,8 +242,8 @@ void toggleFunction(int functionNumber, int functionState)
     {
       motor[i].attach(i + 2);
       motor[i].write(90);
-    }    
-    delay(1000); //wait for 1 second
+    }
+    delay(1000);                   // wait for 1 second
     digitalWrite(indicator, HIGH); // Turn on the indicator LED
     Serial.println("Armed and ready!");
     break;
@@ -256,6 +258,4 @@ void toggleFunction(int functionNumber, int functionState)
     Serial.println("Invalid function number");
     break;
   }
-
 }
-
