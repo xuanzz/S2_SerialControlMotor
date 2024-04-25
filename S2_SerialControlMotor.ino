@@ -4,13 +4,14 @@
 Servo motor[8];    // Array to hold the motor objects
 Servo gripper;  // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
+int rotateGripperPin = 11;
 String readString; // String to hold incoming command from serial port
 uint32_t start, stop; //temperature sensor time
 #define indicator 13 // Indicator LED pin
 #define gripperOpen 150 //gripper open value
 #define gripperClose 30 //gripper close value
 #define gripperStop 93 //gripper stop value
-int rotateangle 90; //rotategripper initial angle
+int rotateangle = 90; //rotategripper initial angle
 int direction;
 unsigned long previousMillis = 0;
 #define ONE_WIRE_BUS            8 //temperature wire exit
@@ -25,7 +26,9 @@ void setup()
   pinMode(indicator, OUTPUT); // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
+  rotategripper.attach(rotateGripperPin);
   gripper.write(gripperStop);
+  rotategripper.write(rotateangle);
   sensor.begin(); //turn on the temperature sensor
   sensor.setResolution(12);
   // for (int i = 0; i < 8; i++)
@@ -54,7 +57,7 @@ void loop()
     }
   }
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 50)
+  if (currentMillis - previousMillis >= 4)
   {
     previousMillis = currentMillis;
     if (direction == 1 || -1)
@@ -136,15 +139,19 @@ void rotateGripper()
   if (direction == 1)
   {
     rotateangle = rotateangle + 1;
+    if (rotateangle >= 180)
+    rotateangle = 180;
     rotategripper.write(rotateangle);
   }
   else if (direction == -1)
   {
     rotateangle = rotateangle - 1;
+    if (rotateangle <= 0)
+    rotateangle = 0;
     rotategripper.write(rotateangle);
   }
   else if (direction == 0)
-  rotategripper.write(rotateangle);
+  {}
 }
 
 // Function to toggle a specific function based on the function number and state

@@ -1,6 +1,6 @@
 {
     "configuration": "cpu=atmega2560",
     "board": "arduino:avr:mega",
-    "port": "COM4",
+    "port": "COM13",
     "sketch": "S2_SerialControlMotor.ino"
 }
