@@ -4,17 +4,20 @@
 Servo motor[8];      // Array to hold the motor objects
 Servo gripper;       // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
+Servo rotategripper_v; // add 1 servo for rotategripper_v
 int rotateGripperPin = 11;
+int rotateGripperPin_v =;
 String readString;      // String to hold incoming command from serial port
-uint32_t start, stop;   // temperature sensor time
 #define indicator 13    // Indicator LED pin
 #define gripperOpen 150 // gripper open value
 #define gripperClose 30 // gripper close value
 #define gripperStop 93  // gripper stop value
 int rotateangle = 90;   // rotategripper initial angle
 int direction;
+int rotateangle_v = 90;
+int direction_y;
 unsigned long previousMillis = 0;
-#define ONE_WIRE_BUS 8 // temperature wire exit
+
 
 OneWire oneWire(ONE_WIRE_BUS);
 DS18B20_INT sensor(&oneWire);
@@ -31,10 +34,7 @@ void setup()
   rotategripper.write(rotateangle);
   sensor.begin(); // turn on the temperature sensor
   sensor.setResolution(12);
-  // for (int i = 0; i < 8; i++)
-  // {
-  //   motor[i].attach(i + 2); // Attach the motors to pins 2 through 9
-  // }
+  
 }
 
 void loop()
@@ -62,6 +62,12 @@ void loop()
     previousMillis = currentMillis;
     if (direction == 1 || -1)
       rotateGripper();
+  }
+  if (currentMillis - previousMillis >= 4)
+  {
+    previousMillis = currentMillis;
+    if (direction_y == 1 || -1)
+      rotateGripper_v();
   }
 }
 
@@ -122,17 +128,15 @@ void processCommand(String command)
   }
 }
 
-void GetTemperature() // function for getting temperature
+void GetpHValue() // function for getting temperature
 {
-  int n = 0;
-  start = millis();
-  sensor.requestTemperatures();
-  while (!sensor.isConversionComplete())
-    n++;
-  int t = sensor.getTempCentiC();
-  stop = millis();
-  Serial2.print("T=");
-  Serial2.println(t);
+  float measure = analogRead();  //Read pin A0
+  double voltage = measure*5/1024; //Analog-to-Digital Conversion
+ 
+  // PH_step (Voltage/pH Unit) = (Voltage@PH7-Voltage@PH4)/(PH7 - PH4)
+  float pH = 7+((2.5 - voltage)/0.1841); // PH_probe = PH7-((Voltage@PH7-Voltage@probe)/PH_step)
+  Serial.print("PH: "); //Print word pH in Serial Monitor
+  Serial.println(pH); //Print pH value in Serial Monitor  
 }
 
 void rotateGripper()
@@ -156,6 +160,27 @@ void rotateGripper()
   }
 }
 
+void rotateGripper_v()
+{
+  if (direction_y == 1)
+  {
+    rotateangle_v = rotateangle_v + 1;
+    if (rotateangle_v >= 180)
+      rotateangle_v = 180;
+    rotategripper_v.write(rotateangle_v);
+  }
+  else if (direction_y == -1)
+  {
+    rotateangle_v= rotateangle_v - 1;
+    if (rotateangle_v <= 0)
+      rotateangle_v = 0;
+    rotategripper_v.write(rotateangle_v);
+  }
+  else if (direction_y == 0)
+  {
+  }
+}
+
 // Function to toggle a specific function based on the function number and state
 void toggleFunction(int functionNumber, int functionState)
 {
@@ -165,18 +190,34 @@ void toggleFunction(int functionNumber, int functionState)
   {
   case 1:
     // Button X, Blue
+    if (functionState == 1)
+    {
+      gripper.write(gripperStop + 60); // open the gripper
+    }
+    else
+    {
+      gripper.write(gripperStop); // stop the gripper
+    }
+    if (functionState == 1)
+    {
     break;
   case 2:
     // Button A, Green
+    if (functionState == 1)
+    {
+      GetpHValue();
+    }
     break;
   case 3:
     // Button B, Red
     break;
   case 4:
     // Button Y, Yellow
-    if (functionState == 1)
+      gripper.write(gripperStop - 60); // close the gripper
+    }
+    else
     {
-      GetTemperature();
+      gripper.write(gripperStop); // stop the gripper
     }
     break;
   case 5:
@@ -196,11 +237,13 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R1, Right bumper
     if (functionState == 1)
     {
-      gripper.write(gripperStop + 60); // open the gripper
+      direction_y = 1;
+      rotateGripper_v();
     }
     else
     {
-      gripper.write(gripperStop); // stop the gripper
+      direction_y = 0;
+      rotateGripper_v();
     }
     break;
   case 7:
@@ -218,14 +261,16 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 8:
     // Button R2, Right trigger
-    if (functionState == 1)
-    {
-      gripper.write(gripperStop - 60); // close the gripper
-    }
-    else
-    {
-      gripper.write(gripperStop); // stop the gripper
-    }
+     if (functionState == 1)
+     {
+       direction_y = -1;
+       rotateGripper_v();
+     }
+     else
+     {
+       direction_y = 0;
+       rotateGripper_v();
+     }
     break;
   case 9:
     // Button Back, detach all motors
@@ -252,6 +297,15 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 12:
     // Button R3, Right stick button
+    break;
+  case 13:
+    
+    break;
+  case 14:
+    break;
+  case 15:
+    break;
+  case 16:
     break;
   default:
     // Invalid function number
