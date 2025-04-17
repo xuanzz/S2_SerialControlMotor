@@ -18,10 +18,6 @@ int rotateangle_v = 90;
 int direction_y;
 unsigned long previousMillis = 0;
 
-
-OneWire oneWire(ONE_WIRE_BUS);
-DS18B20_INT sensor(&oneWire);
-
 void setup()
 {
   Serial.begin(115200);         // Start serial communication at 115200 baud rate
@@ -30,11 +26,10 @@ void setup()
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
   rotategripper.attach(rotateGripperPin);
+  rotategripper_v.attach(rotateGripperPin_v);
   gripper.write(gripperStop);
   rotategripper.write(rotateangle);
-  sensor.begin(); // turn on the temperature sensor
-  sensor.setResolution(12);
-  
+  rotategripper_v.write(rotateangle_v);  
 }
 
 void loop()
@@ -297,15 +292,6 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 12:
     // Button R3, Right stick button
-    break;
-  case 13:
-    
-    break;
-  case 14:
-    break;
-  case 15:
-    break;
-  case 16:
     break;
   default:
     // Invalid function number
