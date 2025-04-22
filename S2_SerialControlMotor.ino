@@ -19,8 +19,8 @@ unsigned long previousMillis = 0;
 
 void setup()
 {
-  Serial.begin(115200);         // Start serial communication at 115200 baud rate
-  Serial2.begin(115200);        // Communication with the Arduino on shore
+  Serial.begin(9600);         // Start serial communication at 115200 baud rate
+  Serial2.begin(9600);        // Communication with the Arduino on shore
   pinMode(indicator, OUTPUT);   // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
