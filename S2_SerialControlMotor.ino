@@ -1,12 +1,11 @@
 #include <Servo.h>
-#include "DS18B20_INT.h"
 
 Servo motor[8];      // Array to hold the motor objects
 Servo gripper;       // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
 Servo rotategripper_v; // add 1 servo for rotategripper_v
 int rotateGripperPin = 11;
-int rotateGripperPin_v =;
+int rotateGripperPin_v = 12;
 String readString;      // String to hold incoming command from serial port
 #define indicator 13    // Indicator LED pin
 #define gripperOpen 150 // gripper open value
@@ -55,13 +54,9 @@ void loop()
   if (currentMillis - previousMillis >= 4)
   {
     previousMillis = currentMillis;
-    if (direction == 1 || -1)
+    if (direction == 1 || direction == -1)
       rotateGripper();
-  }
-  if (currentMillis - previousMillis >= 4)
-  {
-    previousMillis = currentMillis;
-    if (direction_y == 1 || -1)
+    if (direction_y == 1 || direction_y == -1)
       rotateGripper_v();
   }
 }
@@ -125,13 +120,13 @@ void processCommand(String command)
 
 void GetpHValue() // function for getting temperature
 {
-  float measure = analogRead();  //Read pin A0
+  float measure = analogRead(A4);  //Read pin A0
   double voltage = measure*5/1024; //Analog-to-Digital Conversion
  
   // PH_step (Voltage/pH Unit) = (Voltage@PH7-Voltage@PH4)/(PH7 - PH4)
   float pH = 7+((2.5 - voltage)/0.1841); // PH_probe = PH7-((Voltage@PH7-Voltage@probe)/PH_step)
-  Serial.print("PH: "); //Print word pH in Serial Monitor
-  Serial.println(pH); //Print pH value in Serial Monitor  
+  Serial2.print("P="); //Print word pH in Serial Monitor
+  Serial2.println(pH); //Print pH value in Serial Monitor  
 }
 
 void rotateGripper()
@@ -193,8 +188,6 @@ void toggleFunction(int functionNumber, int functionState)
     {
       gripper.write(gripperStop); // stop the gripper
     }
-    if (functionState == 1)
-    {
     break;
   case 2:
     // Button A, Green
@@ -208,6 +201,8 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 4:
     // Button Y, Yellow
+    if (functionState == 1)
+    {
       gripper.write(gripperStop - 60); // close the gripper
     }
     else
