@@ -227,7 +227,7 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R1, Right bumper
     if (functionState == 1)
     {
-      direction_y = 1;
+      direction_y = -1;
       rotateGripper_v();
     }
     else
@@ -253,7 +253,7 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R2, Right trigger
      if (functionState == 1)
      {
-       direction_y = -1;
+       direction_y = 1;
        rotateGripper_v();
      }
      else
