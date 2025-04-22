@@ -155,15 +155,15 @@ void rotateGripper_v()
   if (direction_y == 1)
   {
     rotateangle_v = rotateangle_v + 1;
-    if (rotateangle_v >= 180)
-      rotateangle_v = 180;
+    if (rotateangle_v >= 160)
+      rotateangle_v = 160;
     rotategripper_v.write(rotateangle_v);
   }
   else if (direction_y == -1)
   {
     rotateangle_v= rotateangle_v - 1;
-    if (rotateangle_v <= 0)
-      rotateangle_v = 0;
+    if (rotateangle_v <= 70)
+      rotateangle_v = 70;
     rotategripper_v.write(rotateangle_v);
   }
   else if (direction_y == 0)
