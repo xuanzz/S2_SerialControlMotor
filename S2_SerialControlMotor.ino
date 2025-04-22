@@ -51,7 +51,7 @@ void loop()
     }
   }
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 4)
+  if (currentMillis - previousMillis >= 8)
   {
     previousMillis = currentMillis;
     if (direction == 1 || direction == -1)
