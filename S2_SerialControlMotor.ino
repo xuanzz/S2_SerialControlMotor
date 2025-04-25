@@ -182,11 +182,13 @@ void toggleFunction(int functionNumber, int functionState)
     // Button X, Blue
     if (functionState == 1)
     {
-      gripper.write(gripperStop + 60); // open the gripper
+      direction_y = 1;
+      rotateGripper_v();
     }
     else
     {
-      gripper.write(gripperStop); // stop the gripper
+      direction_y = 0;
+      rotateGripper_v();
     }
     break;
   case 2:
@@ -203,11 +205,13 @@ void toggleFunction(int functionNumber, int functionState)
     // Button Y, Yellow
     if (functionState == 1)
     {
-      gripper.write(gripperStop - 60); // close the gripper
+      direction_y = -1;
+      rotateGripper_v();
     }
     else
     {
-      gripper.write(gripperStop); // stop the gripper
+      direction_y = 0;
+      rotateGripper_v();
     }
     break;
   case 5:
@@ -227,13 +231,11 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R1, Right bumper
     if (functionState == 1)
     {
-      direction_y = -1;
-      rotateGripper_v();
+      gripper.write(gripperStop + 60); // open the gripper
     }
     else
     {
-      direction_y = 0;
-      rotateGripper_v();
+      gripper.write(gripperStop); // stop the gripper
     }
     break;
   case 7:
@@ -253,13 +255,11 @@ void toggleFunction(int functionNumber, int functionState)
     // Button R2, Right trigger
      if (functionState == 1)
      {
-       direction_y = 1;
-       rotateGripper_v();
+      gripper.write(gripperStop - 60); // close the gripper
      }
      else
      {
-       direction_y = 0;
-       rotateGripper_v();
+      gripper.write(gripperStop); // stop the gripper
      }
     break;
   case 9:
