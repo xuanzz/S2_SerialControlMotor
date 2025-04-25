@@ -51,7 +51,7 @@ void loop()
     }
   }
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 8)
+  if (currentMillis - previousMillis >= 16)
   {
     previousMillis = currentMillis;
     if (direction == 1 || direction == -1)
@@ -133,14 +133,14 @@ void rotateGripper()
 {
   if (direction == 1)
   {
-    rotateangle = rotateangle + 1;
+    rotateangle = rotateangle + 2;
     if (rotateangle >= 180)
       rotateangle = 180;
     rotategripper.write(rotateangle);
   }
   else if (direction == -1)
   {
-    rotateangle = rotateangle - 1;
+    rotateangle = rotateangle - 2;
     if (rotateangle <= 0)
       rotateangle = 0;
     rotategripper.write(rotateangle);
