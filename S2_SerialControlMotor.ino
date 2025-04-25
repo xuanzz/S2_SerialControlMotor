@@ -253,14 +253,14 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 8:
     // Button R2, Right trigger
-     if (functionState == 1)
-     {
+    if (functionState == 1)
+    {
       gripper.write(gripperStop - 60); // close the gripper
-     }
-     else
-     {
+    }
+    else
+    {
       gripper.write(gripperStop); // stop the gripper
-     }
+    }
     break;
   case 9:
     // Button Back, detach all motors
