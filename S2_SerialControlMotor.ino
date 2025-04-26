@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-Servo motor[8];      // Array to hold the motor objects
+Servo motor[11];      // Array to hold the motor objects, motor[0] to motor[5] for motors, motor[6] for gripper, motor[7] for rotategripper, motor[8] for rotategripper_v, motot[9] for check sum of motors
 Servo gripper;       // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
 Servo rotategripper_v; // add 1 servo for rotategripper_v
@@ -16,8 +16,8 @@ int direction;
 int rotateangle_v = 90;
 int direction_y;
 unsigned long previousMillis = 0;
-int motorStop[8] = {91,91,92,92,92,92,0,0}; //medium value
-int lastMotorValue[8] = {91,91,92,92,92,92,0,0}; // last motor value
+int motorStop[11] = {91,91,92,92,92,92,0,0,0,0,0}; //medium value
+int lastMotorValue[11] = {91,91,92,92,92,92,0,0,0,0,0}; // last motor value
 
 void setup()
 {
@@ -69,34 +69,53 @@ void processCommand(String command)
   command = command.substring(2);        // Remove the function type and comma from the command
   int commaIndex = command.indexOf(','); // Find the index of the first comma
   // Serial.println("Function type: " + functionType);
+  //Serial.println("Command: " + command); // Print the command for debugging
   if (functionType == 'M')
   {
-    int motorValue[8] = {0}; // Initialize motor values
+    int motorValue[11] = {0}; // Initialize motor values
     int i = 0;
 
     // Parse motor values from the command
-    while (commaIndex != -1 && i < 8)
+    while (commaIndex != -1 && i < 11)
     {
       motorValue[i++] = command.substring(0, commaIndex).toInt();
       command = command.substring(commaIndex + 1);
       commaIndex = command.indexOf(',');
     }
-
-    // Validate motorValue[6] as the sum of motorValue[0] to motorValue[5]
-    if (i == 8 && motorValue[6] != motorValue[0] + motorValue[1] + motorValue[2] + motorValue[3] + motorValue[4] + motorValue[5])
+    // Serial.print("Motor values: ");
+    // for (int j = 0; j < i; j++)
+    // {
+    //   Serial.print("M-");
+    //   Serial.print(j);
+    //   Serial.print(": ");
+    //   Serial.print(motorValue[j]);
+    //   Serial.print(" ");
+    // }
+    //Serial.println();
+    // Validate motorValue[10] is the sum of motorValue[0] to motorValue[9]
+    if (i == 11 && motorValue[10] != motorValue[0] + motorValue[1] + motorValue[2] + motorValue[3] + motorValue[4] + motorValue[5] + motorValue[6] + motorValue[7] + motorValue[8] + motorValue[9])
     {
-      Serial.println("Motor 6 value is not the sum of motors 0 to 5");
-      return;
+      Serial.println("Checksum error!"); // Print checksum error message
     }
-
-    // Update motor values if changed
-    for (int j = 0; j < i; j++)
-    {
-      if (motorValue[j] != lastMotorValue[j])
+    else
+    { // Update motor values if changed
+      for (int j = 0; j < 6; j++)
       {
-        motor[j].write(motorValue[j]);
-        lastMotorValue[j] = motorValue[j];
-        Serial.println("Motor " + String(j) + " speed: " + String(motorValue[j]));
+        if (motorValue[j] != lastMotorValue[j])
+        {
+          motor[j].write(motorValue[j]);
+          lastMotorValue[j] = motorValue[j];
+        }
+      }
+      for (int j = 5; j < i; j++)
+      {
+        if (motorValue[j] != lastMotorValue[j])
+        {
+          int functionNumber = motorValue[j]/10; // Get the function number from the motor value
+          int functionState = motorValue[j]%10; // Get the function state from the motor value
+          toggleFunction(functionNumber, functionState);
+          lastMotorValue[j] = motorValue[j];
+        }
       }
     }
   }
