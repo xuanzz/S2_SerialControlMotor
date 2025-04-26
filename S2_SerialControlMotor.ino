@@ -16,6 +16,7 @@ int direction;
 int rotateangle_v = 90;
 int direction_y;
 unsigned long previousMillis = 0;
+int motorStop[] = {91,91,92,92,92,92}; //medium value
 
 void setup()
 {
@@ -276,9 +277,9 @@ void toggleFunction(int functionNumber, int functionState)
     for (int i = 0; i < 8; i++)
     {
       motor[i].attach(i + 2);
-      motor[i].write(90);
+      motor[i].write(motorStop[i]); // Set the motor to stop position
     }
-    delay(1000);                   // wait for 1 second
+    //delay(1000);                   // wait for 1 second
     digitalWrite(indicator, HIGH); // Turn on the indicator LED
     Serial.println("Armed and ready!");
     break;
