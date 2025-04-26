@@ -16,7 +16,8 @@ int direction;
 int rotateangle_v = 90;
 int direction_y;
 unsigned long previousMillis = 0;
-int motorStop[] = {91,91,92,92,92,92}; //medium value
+int motorStop[8] = {91,91,92,92,92,92,0,0}; //medium value
+int lastMotorValue[8] = {91,91,92,92,92,92,0,0}; // last motor value
 
 void setup()
 {
@@ -70,22 +71,33 @@ void processCommand(String command)
   // Serial.println("Function type: " + functionType);
   if (functionType == 'M')
   {
-    // Motor control function
-    Serial.println("Motor speed: " + command);
+    int motorValue[8] = {0}; // Initialize motor values
     int i = 0;
+
+    // Parse motor values from the command
     while (commaIndex != -1 && i < 8)
     {
-      int value = command.substring(0, commaIndex).toInt(); // Get the value before the comma
-      motor[i].write(value);                                // Control the motor with the value
-      command = command.substring(commaIndex + 1);          // Remove the processed part from the command
-      commaIndex = command.indexOf(',');                    // Find the next comma
-      i++;
+      motorValue[i++] = command.substring(0, commaIndex).toInt();
+      command = command.substring(commaIndex + 1);
+      commaIndex = command.indexOf(',');
     }
-    // Process the last value if there are less than 8 motors
-    if (i < 8)
+
+    // Validate motorValue[6] as the sum of motorValue[0] to motorValue[5]
+    if (i == 8 && motorValue[6] != motorValue[0] + motorValue[1] + motorValue[2] + motorValue[3] + motorValue[4] + motorValue[5])
     {
-      int lastValue = command.toInt();
-      motor[i].write(lastValue); // Control the motor with the last value
+      Serial.println("Motor 6 value is not the sum of motors 0 to 5");
+      return;
+    }
+
+    // Update motor values if changed
+    for (int j = 0; j < i; j++)
+    {
+      if (motorValue[j] != lastMotorValue[j])
+      {
+        motor[j].write(motorValue[j]);
+        lastMotorValue[j] = motorValue[j];
+        Serial.println("Motor " + String(j) + " speed: " + String(motorValue[j]));
+      }
     }
   }
   else if (functionType == 'F')
