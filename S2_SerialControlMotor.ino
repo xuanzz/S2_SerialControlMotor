@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <SoftwareSerial.h>
 
 Servo motor[11];      // Array to hold the motor objects, motor[0] to motor[5] for motors, motor[6] for gripper, motor[7] for rotategripper, motor[8] for rotategripper_v, motot[9] for check sum of motors
 Servo gripper;       // Add 1 servo for gripper
@@ -18,11 +19,26 @@ int direction_y;
 unsigned long previousMillis = 0;
 int motorStop[11] = {91,91,92,92,92,92,0,0,0,0,0}; //medium value
 int lastMotorValue[11] = {91,91,92,92,92,92,0,0,0,0,0}; // last motor value
+softwareSerial a02Serial(11,10); // RX, TX
+unsigned char data[4]={};
+float distance;
+unsigned char data[4];
+int distance = 0;
+int leftAngle = 0;
+int rightAngle = 0;
+int inclineAngle = 0;
+bool objectDetected = false;
+servo widthScanner;
+servo heightScanner;
+int distance = 0;
+
+
 
 void setup()
 {
   Serial.begin(9600);         // Start serial communication at 115200 baud rate
   Serial2.begin(9600);        // Communication with the Arduino on shore
+  a02Serial.begin(9600);        // Communication with the A02 sonar sensor
   pinMode(indicator, OUTPUT);   // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
@@ -161,6 +177,83 @@ void GetpHValue() // function for getting temperature
   Serial2.println(pH); //Print pH value in Serial Monitor  
 }
 
+void sonar()
+{
+  int readDistance() {
+    if (a02Serial.available() >= 4) {
+      for (int i = 0; i < 4; i++) {
+        data[i] = a02Serial.read();
+      }
+ 
+      if (data[0] == 0xFF) {
+        int sum = (data[0] + data[1] + data[2]) & 0xFF;
+        if (sum == data[3]) {
+         return (data[1] << 8) + data[2];
+        }
+      }
+    }
+   return -1;
+  }
+  for (int angle = 0; angle <= 90; angle++) {
+    scanner.write(angle);
+    delay(50);
+    int d = readDistance();
+   if (d > 0 && d < 800) { // object detected threshold
+      if (!objectDetected) {
+        leftAngle = angle;
+        objectDetected = true;
+      }
+    rightAngle = angle;
+    }
+  }  
+  void measureWidth() {
+    for (int angleWidth = 0; angleWidth <= 90; angleWidth++) {
+     scanner.write(angle);
+     delay(50);
+     int d = readDistance();
+     if (d > 0 && d < 800) { // object detected threshold
+        if (!objectDetected) {
+          leftAngle = angle;
+          objectDetected = true;
+        }
+      rightAngle = angle;
+      }
+    }  
+      int d = readDistance();
+      if (d > 0 && d < 800) { // object detected threshold
+      objectDetected = true;
+      if (objectDetected == true) {
+        Serial.print("Object detected");
+        float theta = radians(rightAngle - leftAngle);
+        float width = 2.0 * distance * tan(theta / 2.0);
+        Serial.print("Object Width: ");
+        Serial.print(width);
+        Serial.println(" mm");
+      }
+    }
+  }
+  void measureHeight() {
+    int distance = readDistance();
+    for (int angleHeight = 0; angleHeight <= 90; angleHeight++) {
+      scanner.write(angle);
+      delay(50);
+
+        int d = readDistance();
+        if (d > 0 && d < 800){
+          objectDetected = true;
+          if (!objectDetected) {
+            inclineAngle = angleHeight;
+            Height = distance * tan(inclineAngle);
+            Serial.print("Object Height: ");
+            Serial.print(Height);
+            Serial.println(" mm");  
+          }
+      }  
+    }
+  }
+}
+
+     
 void rotateGripper()
 {
   if (direction == 1)
