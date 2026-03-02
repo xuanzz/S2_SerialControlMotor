@@ -1,10 +1,11 @@
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
-Servo motor[11];      // Array to hold the motor objects, motor[0] to motor[5] for motors, motor[6] for gripper, motor[7] for rotategripper, motor[8] for rotategripper_v, motot[9] for check sum of motors
+Servo motor[13];      // Array to hold the motor objects, motor[0] to motor[5] for motors, motor[6] for gripper, motor[7] for rotategripper, motor[8] for rotategripper_v, motot[9] for check sum of motors
 Servo gripper;       // Add 1 servo for gripper
 Servo rotategripper; // Add 1 servo for rotategripper
 Servo rotategripper_v; // add 1 servo for rotategripper_v
+Servo widthScanner;  //Servo for scanning width
 int rotateGripperPin = 11;
 int rotateGripperPin_v = 12;
 String readString;      // String to hold incoming command from serial port
@@ -19,26 +20,31 @@ int direction_y;
 unsigned long previousMillis = 0;
 int motorStop[11] = {91,91,92,92,92,92,0,0,0,0,0}; //medium value
 int lastMotorValue[11] = {91,91,92,92,92,92,0,0,0,0,0}; // last motor value
-softwareSerial a02Serial(11,10); // RX, TX
+SoftwareSerial a02Serial1(,); // RX, TX
+SoftwareSerial a02Serial2(,); // RX, TX
 unsigned char data[4]={};
 float distance;
 unsigned char data[4];
-int distance = 0;
-int leftAngle = 0;
-int rightAngle = 0;
-int inclineAngle = 0;
-bool objectDetected = false;
-servo widthScanner;
-servo heightScanner;
-int distance = 0;
+//int distance = 0;
+//int leftAngle = 0;
+//int rightAngle = 0;
+//bool objectDetected = false;
+uint16_t horizontalDistance = 0;
+uint16_t height = 0;
+int width = 0;
+const uint8_t HEADER_BYTE_1 = 0xFF;
+const uint8_t HEADER_BYTE_2 = 0xFF;
+const uint16_t READ_TIMEOUT_MS = 200;
+const int ERROR_DISTANCE = -1;  // Error return value
 
 
 
 void setup()
 {
-  Serial.begin(9600);         // Start serial communication at 115200 baud rate
+  Serial.begin(115200);         // Start serial communication at 115200 baud rate
   Serial2.begin(9600);        // Communication with the Arduino on shore
-  a02Serial.begin(9600);        // Communication with the A02 sonar sensor
+  a02Serial1.begin(9600);       // Communication with the A02 sonar sensor
+  a02Serial2.begin(9600);       // Communication with the A02 sonar sensor
   pinMode(indicator, OUTPUT);   // Set the indicator LED pin as output
   digitalWrite(indicator, LOW); // Turn off the indicator LED
   gripper.attach(10);
@@ -77,7 +83,43 @@ void loop()
     if (direction_y == 1 || direction_y == -1)
       rotateGripper_v();
   }
+
 }
+
+uint8_t readN1(uint8_t *buf, size_t len) {
+  size_t offset = 0, left = len;
+  uint8_t *buffer = buf;
+  long curr = millis();
+  while (left) {
+    if (a02Serial1.available()) {
+      buffer[offset] = a02Serial1.read();
+      offset++;
+      left--;
+    }
+    if (millis() - curr > READ_TIMEOUT_MS) {
+      break;
+    }
+  }
+  return offset;
+}
+
+uint8_t readN2(uint8_t *buf, size_t len) {
+  size_t offset = 0, left = len;
+  uint8_t *buffer = buf;
+  long curr = millis();
+  while (left) {
+    if (a02Serial2.available()) {
+      buffer[offset] = a02Serial2.read();
+      offset++;
+      left--;
+    }
+    if (millis() - curr > READ_TIMEOUT_MS) {
+      break;
+    }
+  }
+  return offset;
+}
+
 
 void processCommand(String command)
 {
@@ -179,78 +221,90 @@ void GetpHValue() // function for getting temperature
 
 void sonar()
 {
-  int readDistance() {
-    if (a02Serial.available() >= 4) {
-      for (int i = 0; i < 4; i++) {
-        data[i] = a02Serial.read();
-      }
- 
-      if (data[0] == 0xFF) {
-        int sum = (data[0] + data[1] + data[2]) & 0xFF;
-        if (sum == data[3]) {
-         return (data[1] << 8) + data[2];
+  int readDistance(void) {
+  uint8_t data[4] = { 0 };
+  uint8_t receivedByte = 0;
+  unsigned long startTime = millis();
+  while (millis() - startTime < READ_TIMEOUT_MS) {                      // Check if timeout
+    if (readN1(&receivedByte, 1) == 1 && receivedByte == HEADER_BYTE_1) {  // Find the header byte
+      data[0] = receivedByte;
+      if (readN1(&data[1], 3) == 3) {                     // Read the remaining 3 bytes
+        uint8_t checksum = data[0] + data[1] + data[2];  // Checksum
+        if (checksum == data[3]) {
+          horizontalDistance = (data[1] << 8) | data[2];  // Calculate and return the distance
         }
       }
     }
-   return -1;
+    Serial.println("Error data");
   }
-  for (int angle = 0; angle <= 90; angle++) {
-    scanner.write(angle);
-    delay(50);
-    int d = readDistance();
-   if (d > 0 && d < 800) { // object detected threshold
-      if (!objectDetected) {
-        leftAngle = angle;
-        objectDetected = true;
-      }
-    rightAngle = angle;
-    }
-  }  
-  void measureWidth() {
-    for (int angleWidth = 0; angleWidth <= 90; angleWidth++) {
-     scanner.write(angle);
-     delay(50);
-     int d = readDistance();
-     if (d > 0 && d < 800) { // object detected threshold
-        if (!objectDetected) {
-          leftAngle = angle;
-          objectDetected = true;
+    Serial.println("Error Reading data timeout");
+    return ERROR_DISTANCE;
+  }
+
+  int readHeight(void) {
+  uint8_t data[4] = { 0 };
+  uint8_t receivedByte = 0;
+  unsigned long startTime = millis();
+  while (millis() - startTime < READ_TIMEOUT_MS) {                      // Check if timeout
+    if (readN2(&receivedByte, 1) == 1 && receivedByte == HEADER_BYTE_2) {  // Find the header byte
+      data[0] = receivedByte;
+      if (readN2(&data[1], 3) == 3) {                     // Read the remaining 3 bytes
+        uint8_t checksum = data[0] + data[1] + data[2];  // Checksum
+        if (checksum == data[3]) {
+          height = (data[1] << 8) | data[2];  // Calculate and return the distance
         }
-      rightAngle = angle;
       }
-    }  
-      int d = readDistance();
-      if (d > 0 && d < 800) { // object detected threshold
+    }
+    Serial.println("Error data");
+  }
+    Serial.println("Error Reading data timeout");
+    return ERROR_DISTANCE;
+  }
+  
+  void measureWidth()
+  {
+    widthscanner.write(90);
+    if (horizontalDistance > 0 && horizontalDistance < 800) {
       objectDetected = true;
-      if (objectDetected == true) {
-        Serial.print("Object detected");
-        float theta = radians(rightAngle - leftAngle);
-        float width = 2.0 * distance * tan(theta / 2.0);
-        Serial.print("Object Width: ");
-        Serial.print(width);
-        Serial.println(" mm");
+      for (int angle = 90; angle < rightAngle; angle++) {
+        widthscanner.write(angle);
+        if (!objectDetected) {
+          rightSAngle = angle-1;
+          widthscanner.write(90);
+        }
+      }
+      if (rightAngle > 90){
+        for (int angle = 90; angle > leftAngle; angle--) {
+          widthscanner.write(angle);
+          if (!objectDetected) {
+            leftAngle = angle-1;
+            widthscanner.write(90);
+            Serial.print("Width: ");
+            width = horizontalDistance * tan(rightAngle-90) + horizontalDistance * tan(leftAngle);
+            Serial.print(width);
+            Serial.println(" mm");
+          }
+        }
       }
     }
   }
   void measureHeight() {
-    int distance = readDistance();
-    for (int angleHeight = 0; angleHeight <= 90; angleHeight++) {
-      scanner.write(angle);
-      delay(50);
-
-        int d = readDistance();
-        if (d > 0 && d < 800){
+    for (int i = 0; i < 5; i++) {
+      horizontalDistance = readDistance();
+      if (!objectDetected) {
+        if (horizontalDistance > 0 && horizontalDistance < 800) { // object detected threshold
           objectDetected = true;
-          if (!objectDetected) {
-            inclineAngle = angleHeight;
-            Height = distance * tan(inclineAngle);
-            Serial.print("Object Height: ");
-            Serial.print(Height);
-            Serial.println(" mm");  
+          if (objectDetected == true) {
+            int height = readHeight();
+            Serial.print("Height: ");
+            Serial.print(height);
+            Serial.println(" mm");
+            break;
           }
-      }  
-    }
-  }
+        }
+      }    
+    }    
+  }  
 }
 
      
