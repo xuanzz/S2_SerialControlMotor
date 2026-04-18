@@ -109,12 +109,23 @@ void processCommand(String command)
       }
       for (int j = 5; j < i; j++)
       {
-        if (motorValue[j] != lastMotorValue[j])
+        if (j == 8 && motorValue[8] >= 70 && motorValue[8] <= 160)
         {
-          int functionNumber = motorValue[j]/10; // Get the function number from the motor value
-          int functionState = motorValue[j]%10; // Get the function state from the motor value
-          toggleFunction(functionNumber, functionState);
-          lastMotorValue[j] = motorValue[j];
+          if (motorValue[8] != lastMotorValue[8])
+          {
+            rotategripper_v.write(motorValue[8]);
+            lastMotorValue[8] = motorValue[8];
+          }
+        }
+        else
+        {
+          if (motorValue[j] != lastMotorValue[j])
+          {
+            int functionNumber = motorValue[j]/10; // Get the function number from the motor value
+            int functionState = motorValue[j]%10; // Get the function state from the motor value
+            toggleFunction(functionNumber, functionState);
+            lastMotorValue[j] = motorValue[j];
+          }
         }
       }
     }
@@ -319,6 +330,9 @@ void toggleFunction(int functionNumber, int functionState)
     break;
   case 12:
     // Button R3, Right stick button
+    break;
+  case 0:
+    // No function
     break;
   default:
     // Invalid function number
